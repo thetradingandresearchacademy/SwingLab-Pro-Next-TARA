@@ -1,0 +1,31 @@
+name: TARA Daily Sync
+on:
+  schedule:
+    - cron: '45 14 * * 1-5' # Runs at 7:45 PM IST (14:15 UTC) Mon-Fri
+  workflow_dispatch: # Allows you to run it manually for testing
+
+jobs:
+  harvest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+        
+      - name: Run TARA Harvest
+        run: python harvest.py
+        
+      - name: Commit & Push Smart DB
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add smart_db.csv
+          git commit -m "TARA Smart DB Update: $(date)" || echo "No changes to commit"
+          git push
